@@ -1,0 +1,5 @@
+{
+  "ddlScript": "example/schema.sql",
+  "outputDir": "example/src/gen",
+  "schemaName": "public"
+}
