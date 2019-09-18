@@ -1,5 +1,5 @@
 import { Pool, PoolClient } from 'pg';
-import fs = require('fs');
+import * as fs from 'fs';
 import { runDatabaseScript } from './setup';
 import { getConfig } from './config';
 
