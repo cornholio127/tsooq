@@ -1,6 +1,9 @@
 {
   "name": "tsooq",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "description": "TypeScript Object Oriented Querying",
+  "author": "Mathias Haessig",
+  "license": "Apache License Version 2.0",
   "private": false,
   "scripts": {
     "build": "npm run build-ts && npm run tslint",
@@ -32,5 +35,7 @@
     "@types/sinon": "4.3.1",
     "jsonfile": "5.0.0",
     "@types/jsonfile": "5.0.0"
-  }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
 }

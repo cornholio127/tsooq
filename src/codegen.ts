@@ -138,7 +138,7 @@ const generateModel: (pool: Pool, schemaName: string, outputDir: string) => Prom
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, {recursive: true});
   }
-  let s = 'import { Field, FieldImpl, Table, TableImpl } from \'../tools/db_model\';\n\n';
+  let s = 'import { Field, FieldImpl, Table, TableImpl } from \'tsooq\';\n\n';
   const tds: TableDefinition[] = [];
   for (let i = 0; i < tableNames.length; i++) {
     const td = await loadTableDefinition(pool, schemaName, tableNames[i]);
