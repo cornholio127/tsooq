@@ -1,6 +1,6 @@
 {
   "name": "tsooq",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "homepage": "https://github.com/cornholio127/tsooq",
   "description": "TypeScript Object Oriented Querying",
   "author": "Mathias Haessig",
@@ -14,14 +14,14 @@
     "build": "npm run build-ts && npm run tslint",
     "build-ts": "npx tsc",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "copy-static-assets": "ts-node copyStaticAssets.ts",
     "gen": "npx tsc -t es6 -m commonjs --outDir dist src/codegen.ts && node dist/codegen.js",
     "example": "cross-env CONFIG=example/config.json npm run gen",
     "test": "mocha --require ts-node/register test/*.ts"
   },
   "dependencies": {
     "log4js": "5.1.0",
-    "pg": "7.12.1"
+    "pg": "7.12.1",
+    "node-docker-api": "1.1.22"
   },
   "devDependencies": {
     "@types/node": "12.7.5",
@@ -31,7 +31,6 @@
     "ts-node": "7.0.1",
     "nodemon": "1.19.1",
     "cross-env": "5.2.0",
-    "node-docker-api": "1.1.22",
     "mocha": "6.2.0",
     "chai": "4.2.0",
     "sinon": "7.4.1",

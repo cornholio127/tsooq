@@ -1,7 +1,7 @@
 import * as jsonFile from 'jsonfile';
 import * as fs from 'fs';
 
-const DEFAULT_CONFIG_FILE = './config.json';
+const DEFAULT_CONFIG_FILE = './.tsooq.json';
 
 export interface Config {
   ddlScript: string;
