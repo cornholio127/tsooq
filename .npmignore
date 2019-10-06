@@ -1,4 +1,5 @@
 src
 example
+test
 tsconfig.json
 tslint.json
