@@ -955,7 +955,7 @@ class NullCondition implements Condition {
     return new CombinedCondition('OR', this, cond);
   }
   render(params: any[]) {
-    return `${this.field.name} IS ${this.isNull ? '' : 'NOT '}NULL`;
+    return `${this.field.render()} IS ${this.isNull ? '' : 'NOT '}NULL`;
   }
 }
 
