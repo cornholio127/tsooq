@@ -174,6 +174,23 @@ describe.only('select', () => {
         })
         .catch(err => done(err));
     });
+
+    it('like', done => {
+      const [create, stub] = useCreate();
+      create
+        .select(Person.ID)
+        .from(Tables.PERSON)
+        .where(Person.FIRST_NAME.like('%x%'))
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT person.id FROM person WHERE person.first_name LIKE $1',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
   });
 
   describe('select with order', () => {

@@ -166,6 +166,7 @@ export interface Field<T> extends FieldLike<T> {
   gt(value: T | FieldLike<T>): Condition;
   gte(value: T | FieldLike<T>): Condition;
   in(values: T[] | SelectFinalPart): Condition;
+  like(value: T): Condition;
   isNull(): Condition;
   isNotNull(): Condition;
   as(alias: string): Field<T>;
@@ -229,6 +230,10 @@ export class FieldImpl<T> implements Field<T>, SortField<T> {
 
   in(value: T[] | SelectFinalPart): Condition {
     return new InCondition(this, value);
+  }
+
+  like(value: T): Condition {
+    return this.condition('LIKE', value);
   }
 
   isNull(): Condition {
@@ -795,7 +800,7 @@ class InsertValuesPartImpl implements InsertValuesPart {
   }
 }
 
-interface DeleteFromPart {
+interface DeleteFromPart extends DeleteFinalPart {
   where(cond: Condition): DeleteWherePart;
 }
 
@@ -820,6 +825,14 @@ class DeleteFromPartImpl implements DeleteFromPart, QueryPart {
 
   render(params: any[]): string {
     return `DELETE FROM ${this.table.name}`;
+  }
+
+  toRunnable(): Runnable {
+    return this.create.toRunnable(this.parts);
+  }
+
+  execute(): Promise<void> {
+    return this.create.execute(this.parts);
   }
 }
 
@@ -1005,6 +1018,7 @@ export interface Create {
   transaction(...runnables: Runnable[]): Promise<void>;
   // For testing
   query(queryString: string, params: any[], callback: (err: Error, result: QueryResult<any>) => void): void;
+  executeInTransaction(queryString: string, params: any[]): Promise<void>;
   setLogger(logger: Logger): void;
 }
 
@@ -1107,6 +1121,10 @@ class CreateImpl implements Create {
       this.log(query);
       this.log(formatParamsForLog(params));
     }
+    return this.executeInTransaction(query, params);
+  }
+
+  executeInTransaction(query: string, params: any[]): Promise<void> {
     return transaction2(this.pool, runnable(query, params));
   }
 
@@ -1165,18 +1183,24 @@ class CreateImpl implements Create {
     });
   }
 
-  toRunnable(parts: QueryPart[]): Runnable {
+  renderQuery(parts: QueryPart[]): [string, any[]] {
     const params: any[] = [];
     const query = parts.map(part => part.render(params)).join(' ');
     if (this.canLog) {
       this.log(query);
       this.log(formatParamsForLog(params));
     }
+    return [query, params];
+  }
+
+  toRunnable(parts: QueryPart[]): Runnable {
+    const [query, params] = this.renderQuery(parts);
     return runnable(query, params);
   }
 
   execute(parts: QueryPart[]): Promise<void> {
-    return transaction2(this.pool, this.toRunnable(parts));
+    const [query, params] = this.renderQuery(parts);
+    return this.executeInTransaction(query, params);
   }
 
   transaction(...runnables: Runnable[]): Promise<void> {

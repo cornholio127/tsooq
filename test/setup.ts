@@ -29,9 +29,9 @@ const config: PoolConfig = {
 
 const pool = new Pool(config);
 
-export const useCreate = (): [Create, SinonStub] => {
+export const useCreate = (): [Create, SinonStub, SinonStub] => {
   const create = QueryFactory.create(pool);
-  const stub = sinon.stub(create, 'query').callsFake((queryString, params, callback) => {
+  const queryStub = sinon.stub(create, 'query').callsFake((queryString, params, callback) => {
     callback(undefined, {
       rows: [],
       command: '',
@@ -40,5 +40,6 @@ export const useCreate = (): [Create, SinonStub] => {
       fields: [],
     });
   });
-  return [create, stub];
+  const executeStub = sinon.stub(create, 'executeInTransaction').callsFake(() => Promise.resolve());
+  return [create, queryStub, executeStub];
 };
