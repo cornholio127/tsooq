@@ -1,7 +1,7 @@
 import 'mocha';
 import chai from 'chai';
 import { Tables, Person, useCreate, Address } from './setup';
-import { DbFunctions } from '../src/impl';
+import { DbFunctions, select } from '../src/impl';
 
 describe.only('select', () => {
   describe('simple select', () => {
@@ -187,6 +187,26 @@ describe.only('select', () => {
           chai.assert.equal(
             stub.getCall(0).args[0],
             'SELECT person.id FROM person WHERE person.first_name LIKE $1',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('subquery', done => {
+      const [create, stub] = useCreate();
+      create
+        .select(Person.FIRST_NAME, Person.LAST_NAME)
+        .from(Tables.PERSON)
+        .where(Person.ADDRESS_ID.in(
+          select(Address.ID)
+            .from(Tables.ADDRESS)
+            .where(Address.STREET.eq('Second Street'))))
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT person.first_name, person.last_name FROM person WHERE person.address_id IN (SELECT address.id FROM address WHERE address.street = $1)',
           );
           done();
         })
