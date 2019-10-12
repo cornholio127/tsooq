@@ -20,4 +20,23 @@ describe.only('insert', () => {
         .catch(err => done(err));
     });
   });
+
+  describe('returning', () => {
+    it('should render correct sql', done => {
+      const [create, _, stub] = useCreate();
+      create
+        .insertInto(Tables.PERSON, Person.FIRST_NAME, Person.LAST_NAME, Person.EMAIL)
+        .values('First', 'Last', 'email@domain.com')
+        .returning(Person.ID)
+        .execute()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
+  });
 });

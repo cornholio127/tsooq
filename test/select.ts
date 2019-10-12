@@ -1,13 +1,13 @@
 import 'mocha';
 import chai from 'chai';
-import { Tables, Person, useCreate } from './setup';
+import { Tables, Person, useCreate, Address } from './setup';
 
 describe.only('select', () => {
   describe('simple select', () => {
     it('should render correct sql', done => {
       const [create, stub] = useCreate();
       create
-        .select(...Tables.PERSON.fields)
+        .select(Person.ID, Person.FIRST_NAME, Person.LAST_NAME, Person.EMAIL)
         .from(Tables.PERSON)
         .fetch()
         .then(() => {
@@ -193,11 +193,31 @@ describe.only('select', () => {
     });
   });
 
+  describe('select with join', () => {
+    it('should render correct sql', done => {
+      const [create, stub] = useCreate();
+      create
+        .select(Person.FIRST_NAME, Person.LAST_NAME, Address.STREET, Address.CITY)
+        .from(Tables.PERSON)
+        .leftOuterJoin(Tables.ADDRESS)
+        .on(Person.ADDRESS_ID.eq(Address.ID))
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT person.first_name, person.last_name, address.street, address.city FROM person LEFT OUTER JOIN address ON person.address_id = address.id',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
+  });
+
   describe('select with order', () => {
     it('ascending', done => {
       const [create, stub] = useCreate();
       create
-        .select(...Tables.PERSON.fields)
+        .select(Person.ID, Person.FIRST_NAME, Person.LAST_NAME, Person.EMAIL)
         .from(Tables.PERSON)
         .orderBy(Person.FIRST_NAME.asc())
         .fetch()
@@ -214,7 +234,7 @@ describe.only('select', () => {
     it('descending', done => {
       const [create, stub] = useCreate();
       create
-        .select(...Tables.PERSON.fields)
+        .select(Person.ID, Person.FIRST_NAME, Person.LAST_NAME, Person.EMAIL)
         .from(Tables.PERSON)
         .orderBy(Person.FIRST_NAME.desc())
         .fetch()
