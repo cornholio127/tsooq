@@ -1,5 +1,5 @@
-import { Pool, QueryResult, PoolClient } from 'pg';
-import { Runnable, runnable, transaction2, Runnable2 } from './util';
+import { QueryResult } from 'pg';
+import { Runnable } from './util';
 import { Logger } from 'log4js';
 
 export enum Order {
@@ -13,24 +13,11 @@ export interface Result<T> {
   rowCount: number;
 }
 
-export interface FieldLike<T> {
-  name: string;
-  alias: string;
-  as(alias: string): FieldLike<T>;
-  plus(value: number): FieldLike<number>;
-  minus(value: number): FieldLike<number>;
-  asc(): SortField<T>;
-  desc(): SortField<T>;
+export interface Renderable {
   render(): string;
 }
 
-export interface Field<T> extends FieldLike<T> {
-  ordinal: number;
-  name: string;
-  alias: string;
-  dataType: string;
-  isNullable: boolean;
-  hasDefault: boolean;
+export interface Comparable<T> extends Renderable {
   eq(value: T | FieldLike<T> | SelectFinalPart): Condition;
   ne(value: T | FieldLike<T>): Condition;
   lt(value: T | FieldLike<T>): Condition;
@@ -41,6 +28,25 @@ export interface Field<T> extends FieldLike<T> {
   like(value: T): Condition;
   isNull(): Condition;
   isNotNull(): Condition;
+}
+
+export interface FieldLike<T> extends Comparable<T> {
+  name: string;
+  alias: string;
+  as(alias: string): FieldLike<T>;
+  plus(value: number): FieldLike<number>;
+  minus(value: number): FieldLike<number>;
+  asc(): SortField<T>;
+  desc(): SortField<T>;
+}
+
+export interface Field<T> extends FieldLike<T> {
+  ordinal: number;
+  name: string;
+  alias: string;
+  dataType: string;
+  isNullable: boolean;
+  hasDefault: boolean;
   as(alias: string): Field<T>;
 }
 
@@ -94,6 +100,11 @@ export interface JoinConditionPart extends SelectFinalPart {
 }
 
 export interface GroupByPart extends SelectFinalPart {
+  orderBy(field: SortField<any>): OrderPart;
+  having(cond: Condition): HavingPart;
+}
+
+export interface HavingPart extends SelectFinalPart {
   orderBy(field: SortField<any>): OrderPart;
 }
 
@@ -162,12 +173,12 @@ export interface InsertIntoPart10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
 
 export interface InsertFinalPart<T> {
   execute(): Promise<Result<T>>;
-  runnable(): Runnable2<T>;
+  runnable(): Runnable<T>;
 }
 
 export interface InsertValuesPart {
   execute(): Promise<Result<void>>;
-  runnable(): Runnable2<{}>;
+  runnable(): Runnable<{}>;
   returning<T>(field: Field<T>): InsertFinalPart<T>;
 }
 

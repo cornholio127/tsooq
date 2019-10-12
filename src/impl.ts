@@ -1,12 +1,12 @@
 import { Pool, QueryResult, PoolClient } from 'pg';
-import { Runnable, runnable, transaction2, Runnable2, emptyResult, resultOf } from './util';
+import { Runnable, runnable, executeInTransaction, emptyResult } from './util';
 import { Logger } from 'log4js';
 import { Field, FieldLike, Order, SortField, Table, QueryPart, SelectFinalPart,
   Condition, SelectPart, FromPart, UpdatePart, AssignFieldPart, UpdateWherePart,
   SelectWherePart, Mapper, JoinPart, JoinConditionPart, OrderPart, GroupByPart,
   InsertIntoPart1, InsertIntoPart2, InsertIntoPart3, InsertIntoPart4, InsertIntoPart5,
   InsertIntoPart6, InsertIntoPart7, InsertIntoPart8, InsertIntoPart9, InsertIntoPart10,
-  InsertValuesPart, Result, InsertFinalPart, Create, Record, DeleteWherePart, DeleteFinalPart } from './model';
+  InsertValuesPart, Result, InsertFinalPart, Create, Record, DeleteWherePart, DeleteFinalPart, HavingPart, Comparable, Renderable } from './model';
 
 const isSubquery = (x: any) => (typeof x) === 'object' && 'render' in x;
 
@@ -17,10 +17,66 @@ const renderSubquery: (subQuery: any, params: any[]) => string = (subQuery, para
   return parts.map(p => p.render(params)).join(' ');
 };
 
-abstract class FieldLikeImpl<T> implements FieldLike<T> {
+abstract class ComparableImpl<T> implements Comparable<T> {
+  eq(value: T | FieldLike<T> | SelectFinalPart): Condition {
+    return this.condition('=', value);
+  }
+
+  ne(value: T | FieldLike<T>): Condition {
+    return this.condition('!=', value);
+  }
+
+  lt(value: T | FieldLike<T>): Condition {
+    return this.condition('<', value);
+  }
+
+  lte(value: T | FieldLike<T>): Condition {
+    return this.condition('<=', value);
+  }
+
+  gt(value: T | FieldLike<T>): Condition {
+    return this.condition('>', value);
+  }
+
+  gte(value: T | FieldLike<T>): Condition {
+    return this.condition('>=', value);
+  }
+
+  in(value: T[] | SelectFinalPart): Condition {
+    return new InCondition(this, value);
+  }
+
+  like(value: T): Condition {
+    return this.condition('LIKE', value);
+  }
+
+  isNull(): Condition {
+    return new NullCondition(this, true);
+  }
+
+  isNotNull(): Condition {
+    return new NullCondition(this, false);
+  }
+
+  private condition(op: string, value: T | FieldLike<T> | SelectFinalPart): Condition {
+    if (isFieldLike(value)) {
+      return new FieldCondition(op, this, value as FieldLike<any>);
+    } else if (isSubquery(value)) {
+      return new SubqueryCondition(op, this, value as SelectFinalPart);
+    } else {
+      return new ValueCondition(op, this, value);
+    }
+  }
+
+  abstract render(): string;
+}
+
+abstract class FieldLikeImpl<T> extends ComparableImpl<T> implements FieldLike<T> {
   constructor(
     readonly alias: string,
-  ) {}
+  ) {
+    super();
+  }
   get name() {
     return this.render();
   }
@@ -59,7 +115,7 @@ class DbFunction<T> extends FieldLikeImpl<T> {
 
 class MathExpression extends FieldLikeImpl<number> {
   constructor(
-    private readonly field: Field<any>,
+    private readonly field: Renderable,
     private readonly op: '+' | '-',
     private readonly value: number,
     alias?: string,
@@ -153,7 +209,7 @@ class SortFieldImpl<T> implements SortField<T> {
   }
 }
 
-export class FieldImpl<T> implements Field<T>, SortField<T> {
+export class FieldImpl<T> extends ComparableImpl<T> implements Field<T>, SortField<T> {
   constructor(
     private readonly tableName: string,
     readonly ordinal: number,
@@ -163,50 +219,12 @@ export class FieldImpl<T> implements Field<T>, SortField<T> {
     readonly isNullable: boolean,
     readonly hasDefault: boolean,
     readonly sort: Order = undefined,
-  ) {}
+  ) {
+    super();
+  }
 
   render() {
     return `${this.tableName}.${this.name}`;
-  }
-
-  eq(value: T | FieldLike<T> | SelectFinalPart): Condition {
-    return this.condition('=', value);
-  }
-
-  ne(value: T | FieldLike<T>): Condition {
-    return this.condition('!=', value);
-  }
-
-  lt(value: T | FieldLike<T>): Condition {
-    return this.condition('<', value);
-  }
-
-  lte(value: T | FieldLike<T>): Condition {
-    return this.condition('<=', value);
-  }
-
-  gt(value: T | FieldLike<T>): Condition {
-    return this.condition('>', value);
-  }
-
-  gte(value: T | FieldLike<T>): Condition {
-    return this.condition('>=', value);
-  }
-
-  in(value: T[] | SelectFinalPart): Condition {
-    return new InCondition(this, value);
-  }
-
-  like(value: T): Condition {
-    return this.condition('LIKE', value);
-  }
-
-  isNull(): Condition {
-    return new NullCondition(this, true);
-  }
-
-  isNotNull(): Condition {
-    return new NullCondition(this, false);
   }
 
   asc(): SortField<T> {
@@ -227,16 +245,6 @@ export class FieldImpl<T> implements Field<T>, SortField<T> {
 
   as(alias: string) {
     return new FieldImpl<T>(this.tableName, this.ordinal, this.name, alias, this.dataType, this.isNullable, this.hasDefault);
-  }
-
-  private condition(op: string, value: T | FieldLike<T> | SelectFinalPart): Condition {
-    if (isFieldLike(value)) {
-      return new FieldCondition(op, this, value as FieldLike<any>);
-    } else if (isSubquery(value)) {
-      return new SubqueryCondition(op, this, value as SelectFinalPart);
-    } else {
-      return new ValueCondition(op, this, value);
-    }
   }
 }
 
@@ -272,7 +280,7 @@ class SelectPartImpl implements SelectPart, QueryPart {
     if (this.fields.length === 0) {
       return 'SELECT *';
     }
-    return 'SELECT ' + this.fields.map(field => field.alias == undefined ? field.render() : `${field.render()} AS ${field.alias}`).join(', ');
+    return 'SELECT ' + this.fields.map(field => field.alias == undefined ? field.render() : `${field.render()} AS "${field.alias}"`).join(', ');
   }
 }
 
@@ -495,6 +503,10 @@ class GroupByPartImpl implements GroupByPart, QueryPart {
     return new OrderPartImpl(this.create, this.parts, field);
   }
 
+  having(cond: Condition): HavingPart {
+    return new HavingPartImpl(this.create, this.parts, cond);
+  }
+
   fetch() {
     return this.create.fetch(this.parts);
   }
@@ -513,6 +525,42 @@ class GroupByPartImpl implements GroupByPart, QueryPart {
 
   render(params: any[]) {
     return `GROUP BY ${this.fields.map(field => field.render()).join(', ')}`;
+  }
+}
+
+class HavingPartImpl implements HavingPart, QueryPart {
+  private readonly create: CreateImpl;
+  private readonly cond: Condition;
+  private readonly parts: QueryPart[];
+
+  constructor(create: CreateImpl, parts: QueryPart[], cond: Condition) {
+    this.create = create;
+    this.cond = cond;
+    this.parts = parts.concat(this);
+  }
+
+  orderBy(field: SortField<any>): OrderPart {
+    return new OrderPartImpl(this.create, this.parts, field);
+  }
+
+  fetch() {
+    return this.create.fetch(this.parts);
+  }
+
+  fetchSingle() {
+    return this.create.fetchSingle(this.parts);
+  }
+
+  fetchMapped<T>(mapper: Mapper<T>) {
+    return this.create.fetch(this.parts, mapper);
+  }
+
+  fetchSingleMapped<T>(mapper: Mapper<T>) {
+    return this.create.fetchSingle(this.parts, mapper);
+  }
+
+  render(params: any[]): string {
+    return `HAVING ${this.cond.render(params)}`;
   }
 }
 
@@ -717,7 +765,7 @@ class CombinedCondition implements Condition {
 class FieldCondition<T> implements Condition {
   constructor(
     private readonly op: string,
-    private readonly field1: Field<T>,
+    private readonly field1: Renderable,
     private readonly field2: FieldLike<T>,
   ) {}
   and(cond: Condition): Condition {
@@ -734,7 +782,7 @@ class FieldCondition<T> implements Condition {
 class ValueCondition<T> implements Condition {
   constructor(
     private readonly op: string,
-    private readonly field: Field<T>,
+    private readonly field: Renderable,
     private readonly value: T,
   ) {}
   and(cond: Condition): Condition {
@@ -752,7 +800,7 @@ class ValueCondition<T> implements Condition {
 class SubqueryCondition implements Condition {
   constructor(
     private readonly op: string,
-    private readonly field: Field<any>,
+    private readonly field: Renderable,
     private readonly subQuery: SelectFinalPart,
   ) {}
   and(cond: Condition): Condition {
@@ -768,7 +816,7 @@ class SubqueryCondition implements Condition {
 
 class InCondition<T> implements Condition {
   constructor(
-    private readonly field: Field<T>,
+    private readonly field: Renderable,
     private readonly value: T[] | SelectFinalPart,
   ) {}
   and(cond: Condition): Condition {
@@ -793,7 +841,7 @@ class InCondition<T> implements Condition {
 
 class NullCondition implements Condition {
   constructor(
-    private readonly field: Field<any>,
+    private readonly field: Renderable,
     private readonly isNull: boolean,
   ) {}
   and(cond: Condition): Condition {
@@ -893,7 +941,7 @@ class CreateImpl implements Create {
     return [query, params];
   }
 
-  insert<T>(table: Table, fields: Field<any>[], values: any[], returning?: Field<T>): Runnable2<T> {
+  insert<T>(table: Table, fields: Field<any>[], values: any[], returning?: Field<T>): Runnable<T> {
     const [query, params] = this.renderInsert(table, fields, values);
     return runnable(query, params, returning);
   }
@@ -904,7 +952,7 @@ class CreateImpl implements Create {
   }
 
   executeInTransaction<T = void>(query: string, params: any[], returning?: Field<T>): Promise<Result<T>> {
-    return transaction2(this.pool, runnable(query, params, returning), returning);
+    return executeInTransaction(this.pool, runnable(query, params, returning), returning);
   }
 
   query(queryString: string, params: any[], callback: (err: Error, result: QueryResult<any>) => void) {
@@ -983,7 +1031,7 @@ class CreateImpl implements Create {
   }
 
   transaction(...runnables: Runnable[]): Promise<Result<void>> {
-    return transaction2(this.pool, async (client: PoolClient) => {
+    return executeInTransaction(this.pool, async (client: PoolClient) => {
       for (let i = 0; i < runnables.length; i++) {
         await runnables[i](client);
       }

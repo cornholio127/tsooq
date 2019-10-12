@@ -40,9 +40,7 @@ export const resultOf = <T>(queryResult: QueryResult, field: Field<T>): Result<T
 
 export const emptyResult = (): Result<void> => new EmptyResult();
 
-export type Runnable2<T> = (client: PoolClient) => Promise<Result<T>>;
-
-export const transaction2 = <T = void>(pool: Pool, runnable: Runnable<T>, returning?: Field<T>): Promise<Result<T>> => new Promise<Result<T>>((resolve, reject) => {
+export const executeInTransaction = <T = void>(pool: Pool, runnable: Runnable<T>, returning?: Field<T>): Promise<Result<T>> => new Promise<Result<T>>((resolve, reject) => {
   pool.connect((err, client, done) => {
     if (err) {
       reject(err);

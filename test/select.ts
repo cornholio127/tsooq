@@ -1,6 +1,7 @@
 import 'mocha';
 import chai from 'chai';
 import { Tables, Person, useCreate, Address } from './setup';
+import { DbFunctions } from '../src/impl';
 
 describe.only('select', () => {
   describe('simple select', () => {
@@ -267,6 +268,23 @@ describe.only('select', () => {
         .catch(err => done(err));
     });
 
-    // TODO: having
+    it('having', done => {
+      const [create, stub] = useCreate();
+      const count = DbFunctions.count(Person.FIRST_NAME).as('count');
+      create
+        .select(Person.FIRST_NAME, count)
+        .from(Tables.PERSON)
+        .groupBy(Person.FIRST_NAME)
+        .having(count.gt(1))
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT person.first_name, COUNT(person.first_name) AS "count" FROM person GROUP BY person.first_name HAVING COUNT(person.first_name) > $1',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
   });
 });
