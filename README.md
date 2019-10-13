@@ -76,7 +76,7 @@ export const create = QueryFactory.create(pool);
 ```
 That's it! Now you can start writing queries using tsOOQ!
 ```javascript
-export const add = (dto: PersonDto): Promise<void> => {
+export const add = (dto: PersonDto): Promise<Result<void>> => {
   return create
     .insertInto(Tables.PERSON, Person.FIRST_NAME, Person.LAST_NAME, Person.EMAIL)
     .values(dto.firstName, dto.lastName, dto.email)
