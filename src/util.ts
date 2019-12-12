@@ -23,6 +23,8 @@ class ResultImpl<T> implements Result<T> {
 }
 
 class EmptyResult implements Result<void> {
+  constructor(private readonly queryResult: QueryResult) {}
+
   get value(): any {
     return undefined;
   }
@@ -32,7 +34,7 @@ class EmptyResult implements Result<void> {
   }
 
   get rowCount() {
-    return 0;
+    return this.queryResult.rowCount;
   }
 }
 
@@ -54,7 +56,7 @@ class ConstantResult<T> implements Result<T> {
 
 export const resultOf = <T>(queryResult: QueryResult, field: Field<T>): Result<T> => new ResultImpl(queryResult, field);
 
-export const emptyResult = (): Result<void> => new EmptyResult();
+export const emptyResult = <T>(queryResult: QueryResult): Result<T> => new EmptyResult(queryResult);
 
 export const constantResult = <T>(result: T) => new ConstantResult<T>(result);
 
@@ -85,6 +87,6 @@ export const executeInTransaction = <T = void>(pool: Pool, runnable: Runnable<T>
 export const runnable = <T = void>(queryString: string, params: any[], returning?: Field<T>): Runnable<T> =>
   (client: PoolClient) => new Promise<Result<T>>((resolve, reject) => {
     client.query(queryString, params)
-      .then(result => resolve(returning ? resultOf(result, returning) : emptyResult() as any))
+      .then(result => resolve(returning ? resultOf(result, returning) : emptyResult(result)))
       .catch(reject);
   });
