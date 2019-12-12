@@ -1,6 +1,6 @@
 {
   "name": "tsooq",
-  "version": "0.1.11",
+  "version": "0.1.15",
   "homepage": "https://github.com/cornholio127/tsooq",
   "description": "TypeScript Object Oriented Querying",
   "author": "Mathias Haessig",
@@ -18,8 +18,10 @@
     "test": "mocha --require ts-node/register test/*.ts"
   },
   "dependencies": {
-    "log4js": "5.2.2",
-    "pg": "7.12.1"
+    "log4js": "5.2.2"
+  },
+  "peerDependencies": {
+    "pg": "^7.12.1"
   },
   "devDependencies": {
     "@types/node": "12.7.12",

@@ -127,7 +127,7 @@ export interface SelectFinalPart {
 }
 
 export interface UpdateFinalPart {
-  toRunnable(): Runnable;
+  runnable(): Runnable;
   execute(): Promise<Result<void>>;
 }
 
@@ -189,7 +189,7 @@ export interface DeleteFromPart extends DeleteFinalPart {
 export interface DeleteWherePart extends DeleteFinalPart {}
 
 export interface DeleteFinalPart {
-  toRunnable(): Runnable;
+  runnable(): Runnable;
   execute(): Promise<Result<void>>;
 }
 
@@ -217,7 +217,7 @@ export interface Create {
   insertInto<T1, T2, T3, T4, T5, T6, T7, T8, T9>(table: Table, f1: Field<T1>, f2: Field<T2>, f3: Field<T3>, f4: Field<T4>, f5: Field<T5>, f6: Field<T6>, f7: Field<T7>, f8: Field<T8>, f9: Field<T9>): InsertIntoPart9<T1, T2, T3, T4, T5, T6, T7, T8, T9>;
   insertInto<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(table: Table, f1: Field<T1>, f2: Field<T2>, f3: Field<T3>, f4: Field<T4>, f5: Field<T5>, f6: Field<T6>, f7: Field<T7>, f8: Field<T8>, f9: Field<T9>, f10?: Field<T10>): InsertIntoPart10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>;
   deleteFrom(table: Table): DeleteFromPart;
-  transaction(...runnables: Runnable[]): Promise<Result<void>>;
+  transaction<T>(...runnables: Runnable<any>[]): Promise<T>;
   // For testing
   query(queryString: string, params: any[], callback: (err: Error, result: QueryResult<any>) => void): void;
   executeInTransaction<T = void>(query: string, params: any[], returning?: Field<T>): Promise<Result<T>>;

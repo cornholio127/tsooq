@@ -1,5 +1,5 @@
 import { Pool, QueryResult, PoolClient } from 'pg';
-import { Runnable, runnable, executeInTransaction, emptyResult } from './util';
+import { Runnable, runnable, executeInTransaction, emptyResult, resultOf } from './util';
 import { Logger } from 'log4js';
 import { Field, FieldLike, Order, SortField, Table, QueryPart, SelectFinalPart,
   Condition, SelectPart, FromPart, UpdatePart, AssignFieldPart, UpdateWherePart,
@@ -330,7 +330,7 @@ class AssignFieldPartImpl implements AssignFieldPart, QueryPart {
     return new WherePartImpl(this.create, this.parts, cond);
   }
 
-  toRunnable(): Runnable {
+  runnable(): Runnable {
     return this.create.toRunnable(this.parts);
   }
 
@@ -475,7 +475,7 @@ class JoinConditionPartImpl implements JoinConditionPart, QueryPart {
     return this.create.fetchSingle(this.parts, mapper);
   }
 
-  toRunnable(): Runnable {
+  runnable(): Runnable {
     return this.create.toRunnable(this.parts);
   }
 
@@ -600,7 +600,7 @@ class WherePartImpl implements SelectWherePart, UpdateWherePart, DeleteWherePart
     return this.create.fetchSingle(this.parts, mapper);
   }
 
-  toRunnable(): Runnable {
+  runnable(): Runnable {
     return this.create.toRunnable(this.parts);
   }
 
@@ -718,7 +718,7 @@ class DeleteFromPartImpl implements DeleteFromPart, QueryPart {
     return `DELETE FROM ${this.table.name}`;
   }
 
-  toRunnable(): Runnable {
+  runnable(): Runnable {
     return this.create.toRunnable(this.parts);
   }
 
@@ -942,7 +942,7 @@ class CreateImpl implements Create {
   }
 
   insert<T>(table: Table, fields: Field<any>[], values: any[], returning?: Field<T>): Runnable<T> {
-    const [query, params] = this.renderInsert(table, fields, values);
+    const [query, params] = this.renderInsert(table, fields, values, returning);
     return runnable(query, params, returning);
   }
 
@@ -1030,12 +1030,14 @@ class CreateImpl implements Create {
     return this.executeInTransaction(query, params);
   }
 
-  transaction(...runnables: Runnable[]): Promise<Result<void>> {
-    return executeInTransaction(this.pool, async (client: PoolClient) => {
+  async transaction<T = void>(...runnables: Runnable<any>[]): Promise<T> {
+    const result = await executeInTransaction(this.pool, async (client: PoolClient) => {
+      let lastResult;
       for (let i = 0; i < runnables.length; i++) {
-        await runnables[i](client);
+        lastResult = await runnables[i](client);
       }
-      return emptyResult();
+      return lastResult;
     });
+    return result.value as unknown as T;
   }
 }

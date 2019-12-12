@@ -36,9 +36,27 @@ class EmptyResult implements Result<void> {
   }
 }
 
+class ConstantResult<T> implements Result<T> {
+  constructor(private readonly result: T) {}
+
+  get value(): T {
+    return this.result;
+  }
+
+  get values(): T[] {
+    return [this.result];
+  }
+
+  get rowCount() {
+    return 1;
+  }
+}
+
 export const resultOf = <T>(queryResult: QueryResult, field: Field<T>): Result<T> => new ResultImpl(queryResult, field);
 
 export const emptyResult = (): Result<void> => new EmptyResult();
+
+export const constantResult = <T>(result: T) => new ConstantResult<T>(result);
 
 export const executeInTransaction = <T = void>(pool: Pool, runnable: Runnable<T>, returning?: Field<T>): Promise<Result<T>> => new Promise<Result<T>>((resolve, reject) => {
   pool.connect((err, client, done) => {
