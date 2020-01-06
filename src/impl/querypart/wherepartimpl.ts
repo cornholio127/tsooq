@@ -8,11 +8,11 @@ import {
   FieldLike,
   SortField,
   OrderPart,
+  Database,
 } from '../../model';
 import OrderPartImpl from './orderpartimpl';
 import { Runnable } from '../../util';
 import GroupByPartImpl from './groupbypartimpl';
-import { Database } from '../database';
 import SelectFinalPartImpl from './selectfinalpartimpl';
 
 class WherePartImpl extends SelectFinalPartImpl

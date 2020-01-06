@@ -5,10 +5,10 @@ import {
   DeleteWherePart,
   Condition,
   Result,
+  Database,
 } from '../../model';
 import { Runnable } from '../../util';
 import WherePartImpl from './wherepartimpl';
-import { Database } from '../database';
 
 class DeleteFromPartImpl implements DeleteFromPart, QueryPart {
   private readonly db: Database;

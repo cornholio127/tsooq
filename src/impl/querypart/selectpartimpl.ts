@@ -5,9 +5,9 @@ import {
   FieldLike,
   Field,
   Table,
+  Database,
 } from '../../model';
 import FromPartImpl from './frompartimpl';
-import { Database } from '../database';
 
 class SelectPartImpl implements SelectPart, QueryPart {
   private readonly db: Database;

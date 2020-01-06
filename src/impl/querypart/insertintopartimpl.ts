@@ -12,9 +12,9 @@ import {
   InsertIntoPart10,
   Table,
   Field,
+  Database,
 } from '../../model';
 import InsertValuesPartImpl from './insertvaluespartimpl';
-import { Database } from '../database';
 
 class InsertIntoPartImpl
   implements

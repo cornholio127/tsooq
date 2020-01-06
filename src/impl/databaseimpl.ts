@@ -1,9 +1,8 @@
 import { Logger } from 'log4js';
 import { Pool, QueryResult, PoolClient } from 'pg';
-import { Field, Table, Record, Result, QueryPart } from '../model';
+import { Database, Field, Table, Record, Result, QueryPart } from '../model';
 import { Runnable, runnable, executeInTransaction } from '../util';
 import RecordImpl from './recordimpl';
-import { Database } from './database';
 
 const formatParamsForLog = (params: unknown[]) =>
   params

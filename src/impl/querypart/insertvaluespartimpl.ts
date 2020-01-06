@@ -1,6 +1,5 @@
-import { Field, InsertValuesPart, Table, Result } from '../../model';
+import { Database, Field, InsertValuesPart, Table, Result } from '../../model';
 import InsertFinalPartImpl from './insertfinalpartimpl';
-import { Database } from '../database';
 
 class InsertValuesPartImpl implements InsertValuesPart {
   constructor(

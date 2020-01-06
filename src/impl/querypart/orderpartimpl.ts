@@ -1,5 +1,4 @@
-import { OrderPart, QueryPart, SortField, Order } from '../../model';
-import { Database } from '../database';
+import { Database, OrderPart, QueryPart, SortField, Order } from '../../model';
 import SelectFinalPartImpl from './selectfinalpartimpl';
 
 class OrderPartImpl extends SelectFinalPartImpl

@@ -8,8 +8,8 @@ import {
   SortField,
   OrderPart,
   Result,
+  Database,
 } from '../../model';
-import { Database } from '../database';
 import WherePartImpl from './wherepartimpl';
 import OrderPartImpl from './orderpartimpl';
 import { Runnable } from '../../util';

@@ -6,10 +6,10 @@ import {
   OrderPart,
   Condition,
   HavingPart,
+  Database,
 } from '../../model';
 import OrderPartImpl from './orderpartimpl';
 import HavingPartImpl from './havingpartimpl';
-import { Database } from '../database';
 import SelectFinalPartImpl from './selectfinalpartimpl';
 
 class GroupByPartImpl extends SelectFinalPartImpl

@@ -7,12 +7,12 @@ import {
   UpdatePart,
   Table,
   DeleteFromPart,
+  Database,
 } from '../model';
 import SelectPartImpl from './querypart/selectpartimpl';
 import UpdatePartImpl from './querypart/updatepartimpl';
 import InsertIntoPartImpl from './querypart/insertintopartimpl';
 import DeleteFromPartImpl from './querypart/deletefrompartimpl';
-import { Database } from './database';
 import DatabaseImpl from './databaseimpl';
 import { Runnable } from '../util';
 

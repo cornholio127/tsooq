@@ -6,12 +6,12 @@ import {
   SelectWherePart,
   FieldLike,
   SortField,
+  Database,
 } from '../../model';
 import JoinPartImpl, { LeftOuterJoinPartImpl } from './joinpartimpl';
 import WherePartImpl from './wherepartimpl';
 import GroupByPartImpl from './groupbypartimpl';
 import OrderPartImpl from './orderpartimpl';
-import { Database } from '../database';
 import SelectFinalPartImpl from './selectfinalpartimpl';
 
 class FromPartImpl extends SelectFinalPartImpl implements FromPart, QueryPart {

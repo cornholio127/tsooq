@@ -6,11 +6,11 @@ import {
   Condition,
   UpdateWherePart,
   Result,
+  Database,
 } from '../../model';
 import { Runnable } from '../../util';
 import { isFieldLike } from '../util';
 import WherePartImpl from './wherepartimpl';
-import { Database } from '../database';
 
 class AssignFieldPartImpl implements AssignFieldPart, QueryPart {
   private readonly db: Database;

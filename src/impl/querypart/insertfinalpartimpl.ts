@@ -1,5 +1,4 @@
-import { InsertFinalPart, Table, Field } from '../../model';
-import { Database } from '../database';
+import { Database, InsertFinalPart, Table, Field } from '../../model';
 
 class InsertFinalPartImpl<T> implements InsertFinalPart<T> {
   constructor(

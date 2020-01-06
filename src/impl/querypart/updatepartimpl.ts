@@ -1,6 +1,5 @@
-import { Field, Table, UpdatePart, QueryPart } from '../../model';
+import { Database, Field, Table, UpdatePart, QueryPart } from '../../model';
 import AssignFieldPartImpl from './assignfieldpartimpl';
-import { Database } from '../database';
 
 class UpdatePartImpl implements UpdatePart, QueryPart {
   private readonly db: Database;

@@ -1,5 +1,10 @@
-import { SelectFinalPart, Record, Mapper, QueryPart } from '../../model';
-import { Database } from '../database';
+import {
+  Database,
+  SelectFinalPart,
+  Record,
+  Mapper,
+  QueryPart,
+} from '../../model';
 
 abstract class SelectFinalPartImpl implements SelectFinalPart, QueryPart {
   readonly db: Database;
