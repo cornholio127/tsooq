@@ -1,7 +1,7 @@
 import 'mocha';
 import chai from 'chai';
 import { Tables, Person, useCreate, Address } from './setup';
-import { select } from '../src/impl';
+import { select } from '../src/impl/queryfactory';
 
 describe.only('delete', () => {
   describe('simple delete', () => {

@@ -1,6 +1,8 @@
 import { PoolConfig, Pool } from 'pg';
 import { Field, Table, Create } from '../src/model';
-import { FieldImpl, TableImpl, QueryFactory } from '../src/impl';
+import TableImpl from '../src/impl/tableimpl';
+import FieldImpl from '../src/impl/field/fieldimpl';
+import QueryFactory from '../src/impl/queryfactory';
 import sinon, { SinonStub } from 'sinon';
 
 export class Person extends TableImpl {
@@ -46,7 +48,7 @@ const pool = new Pool(config);
 
 export const useCreate = (): [Create, SinonStub, SinonStub] => {
   const create = QueryFactory.create(pool);
-  const queryStub = sinon.stub(create, 'query').callsFake((queryString, params, callback) => {
+  const queryStub = sinon.stub(create.getDb(), 'query').callsFake((queryString, params, callback) => {
     callback(undefined, {
       rows: [],
       command: '',
@@ -55,6 +57,6 @@ export const useCreate = (): [Create, SinonStub, SinonStub] => {
       fields: [],
     });
   });
-  const executeStub = sinon.stub(create, 'executeInTransaction').callsFake(() => Promise.resolve() as any);
+  const executeStub = sinon.stub(create.getDb(), 'executeInTransaction').callsFake(() => Promise.resolve() as any);
   return [create, queryStub, executeStub];
 };

@@ -1,7 +1,8 @@
 import 'mocha';
 import chai from 'chai';
 import { Tables, Person, useCreate, Address } from './setup';
-import { DbFunctions, select } from '../src/impl';
+import DbFunctions from '../src/impl/field/dbfunctions';
+import { select } from '../src/impl/queryfactory';
 
 describe.only('select', () => {
   describe('simple select', () => {
