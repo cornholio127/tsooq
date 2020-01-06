@@ -308,4 +308,58 @@ describe.only('select', () => {
         .catch(err => done(err));
     });
   });
+
+  describe('select with cursor', () => {
+    it('limit', done => {
+      const [create, stub] = useCreate();
+      create
+        .select()
+        .from(Tables.PERSON)
+        .limit(5)
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT * FROM person LIMIT 5',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('offset', done => {
+      const [create, stub] = useCreate();
+      create
+        .select()
+        .from(Tables.PERSON)
+        .offset(20)
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT * FROM person OFFSET 20',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('limit and offset', done => {
+      const [create, stub] = useCreate();
+      create
+        .select()
+        .from(Tables.PERSON)
+        .limit(5)
+        .offset(20)
+        .fetch()
+        .then(() => {
+          chai.assert.equal(
+            stub.getCall(0).args[0],
+            'SELECT * FROM person LIMIT 5 OFFSET 20',
+          );
+          done();
+        })
+        .catch(err => done(err));
+    });
+  });
 });

@@ -121,6 +121,8 @@ export interface OrderPart extends SelectFinalPart {}
 export type Mapper<T> = (record: Record) => T;
 
 export interface SelectFinalPart {
+  limit(limit: number): SelectFinalPart;
+  offset(offset: number): SelectFinalPart;
   fetch(): Promise<Record[]>;
   fetchSingle(): Promise<Record>;
   fetchMapped<T>(mapper: Mapper<T>): Promise<T[]>;

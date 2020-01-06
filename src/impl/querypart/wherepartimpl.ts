@@ -8,24 +8,20 @@ import {
   FieldLike,
   SortField,
   OrderPart,
-  Mapper,
-  Record,
 } from '../../model';
 import OrderPartImpl from './orderpartimpl';
 import { Runnable } from '../../util';
 import GroupByPartImpl from './groupbypartimpl';
 import { Database } from '../database';
+import SelectFinalPartImpl from './selectfinalpartimpl';
 
-class WherePartImpl
+class WherePartImpl extends SelectFinalPartImpl
   implements SelectWherePart, UpdateWherePart, DeleteWherePart, QueryPart {
-  private readonly db: Database;
   private readonly cond: Condition;
-  private readonly parts: QueryPart[];
 
   constructor(db: Database, parts: QueryPart[], cond: Condition) {
-    this.db = db;
+    super(db, parts);
     this.cond = cond;
-    this.parts = parts.concat(this);
   }
 
   groupBy(...fields: FieldLike<unknown>[]) {
@@ -34,22 +30,6 @@ class WherePartImpl
 
   orderBy(field: SortField<unknown>): OrderPart {
     return new OrderPartImpl(this.db, this.parts, field);
-  }
-
-  fetch() {
-    return this.db.fetch(this.parts) as Promise<Record[]>;
-  }
-
-  fetchSingle() {
-    return this.db.fetchSingle(this.parts) as Promise<Record>;
-  }
-
-  fetchMapped<T>(mapper: Mapper<T>) {
-    return this.db.fetch(this.parts, mapper) as Promise<T[]>;
-  }
-
-  fetchSingleMapped<T>(mapper: Mapper<T>) {
-    return this.db.fetchSingle(this.parts, mapper) as Promise<T>;
   }
 
   runnable(): Runnable {

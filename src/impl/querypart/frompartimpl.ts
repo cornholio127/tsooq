@@ -1,5 +1,4 @@
 import {
-  Mapper,
   FromPart,
   QueryPart,
   Table,
@@ -7,23 +6,20 @@ import {
   SelectWherePart,
   FieldLike,
   SortField,
-  Record,
 } from '../../model';
 import JoinPartImpl, { LeftOuterJoinPartImpl } from './joinpartimpl';
 import WherePartImpl from './wherepartimpl';
 import GroupByPartImpl from './groupbypartimpl';
 import OrderPartImpl from './orderpartimpl';
 import { Database } from '../database';
+import SelectFinalPartImpl from './selectfinalpartimpl';
 
-class FromPartImpl implements FromPart, QueryPart {
-  private readonly db: Database;
+class FromPartImpl extends SelectFinalPartImpl implements FromPart, QueryPart {
   private readonly table: Table;
-  private readonly parts: QueryPart[];
 
   constructor(db: Database, parts: QueryPart[], table: Table) {
-    this.db = db;
+    super(db, parts);
     this.table = table;
-    this.parts = parts.concat(this);
   }
 
   join(table: Table) {
@@ -44,22 +40,6 @@ class FromPartImpl implements FromPart, QueryPart {
 
   orderBy(field: SortField<unknown>) {
     return new OrderPartImpl(this.db, this.parts, field);
-  }
-
-  fetch() {
-    return this.db.fetch(this.parts) as Promise<Record[]>;
-  }
-
-  fetchSingle() {
-    return this.db.fetchSingle(this.parts) as Promise<Record>;
-  }
-
-  fetchMapped<T>(mapper: Mapper<T>) {
-    return this.db.fetch(this.parts, mapper) as Promise<T[]>;
-  }
-
-  fetchSingleMapped<T>(mapper: Mapper<T>) {
-    return this.db.fetchSingle(this.parts, mapper) as Promise<T>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

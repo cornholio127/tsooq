@@ -7,24 +7,21 @@ import {
   SelectWherePart,
   SortField,
   OrderPart,
-  Mapper,
   Result,
-  Record,
 } from '../../model';
 import { Database } from '../database';
 import WherePartImpl from './wherepartimpl';
 import OrderPartImpl from './orderpartimpl';
 import { Runnable } from '../../util';
+import SelectFinalPartImpl from './selectfinalpartimpl';
 
-class JoinConditionPartImpl implements JoinConditionPart, QueryPart {
-  private readonly db: Database;
+class JoinConditionPartImpl extends SelectFinalPartImpl
+  implements JoinConditionPart, QueryPart {
   private readonly cond: Condition;
-  private readonly parts: QueryPart[];
 
   constructor(db: Database, parts: QueryPart[], cond: Condition) {
-    this.db = db;
+    super(db, parts);
     this.cond = cond;
-    this.parts = parts.concat(this);
   }
 
   join(table: Table) {
@@ -43,22 +40,6 @@ class JoinConditionPartImpl implements JoinConditionPart, QueryPart {
 
   orderBy(field: SortField<unknown>): OrderPart {
     return new OrderPartImpl(this.db, this.parts, field);
-  }
-
-  fetch() {
-    return this.db.fetch(this.parts) as Promise<Record[]>;
-  }
-
-  fetchSingle() {
-    return this.db.fetchSingle(this.parts) as Promise<Record>;
-  }
-
-  fetchMapped<T>(mapper: Mapper<T>) {
-    return this.db.fetch(this.parts, mapper) as Promise<T[]>;
-  }
-
-  fetchSingleMapped<T>(mapper: Mapper<T>) {
-    return this.db.fetchSingle(this.parts, mapper) as Promise<T>;
   }
 
   runnable(): Runnable {
