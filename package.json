@@ -18,7 +18,7 @@
     "test": "mocha --require ts-node/register test/*.ts"
   },
   "dependencies": {
-    "log4js": "6.1.0"
+    "log4js": "6.4.0"
   },
   "peerDependencies": {
     "pg": "^7.12.1"
